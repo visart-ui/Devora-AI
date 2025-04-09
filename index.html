@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT Clip Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --teal: #20B2AA;
+            --light-teal: #E0F7FA;
+            --dark-teal: #008B8B;
+            --white: #FFFFFF;
+            --blue: #1E90FF;
+            --light-gray: #F5F5F5;
+            --dark-gray: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: var(--dark-teal);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--blue);
+            font-weight: 300;
+            margin-bottom: 2rem;
+        }
+
+        .input-section {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        input[type="text"] {
+            padding: 0.8rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--teal);
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--teal);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--dark-teal);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--blue);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #1a7fd9;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: var(--teal);
+            font-size: 1.2rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--light-teal);
+            border-top: 4px solid var(--teal);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .clips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .clip {
+            background-color: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            aspect-ratio: 9/16;
+        }
+
+        .clip-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .clip-info {
+            padding: 0.5rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            font-size: 0.8rem;
+        }
+
+        .clip-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .clip-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clip-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1rem;
+            color: var(--dark-teal);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .clips-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>YouTube Clip Generator</h1>
+            <p class="subtitle">Create 10 random 30-60 second clips in 9:16 format from any YouTube video</p>
+        </header>
+
+        <section class="input-section">
+            <div class="input-group">
+                <input type="text" id="yt-url" placeholder="Paste YouTube video URL here..." required>
+                <button id="generate-btn" class="btn btn-primary">Generate Clips</button>
+            </div>
+        </section>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Generating your clips... This may take a moment.</p>
+        </div>
+
+        <section id="results" class="results">
+            <h2>Your Generated Clips</h2>
+            <div class="clips-grid" id="clips-container">
+                <!-- Clips will be inserted here by JavaScript -->
+            </div>
+            <div class="actions">
+                <button id="export-btn" class="btn btn-secondary">Export All Clips as ZIP</button>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2023 YT Clip Generator | Designed with ❤️ for content creators</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generate-btn');
+            const exportBtn = document.getElementById('export-btn');
+            const ytUrlInput = document.getElementById('yt-url');
+            const loadingSection = document.getElementById('loading');
+            const resultsSection = document.getElementById('results');
+            const clipsContainer = document.getElementById('clips-container');
+
+            generateBtn.addEventListener('click', async function() {
+                const ytUrl = ytUrlInput.value.trim();
+                
+                if (!ytUrl) {
+                    alert('Please enter a YouTube URL');
+                    return;
+                }
+
+                if (!isValidYouTubeUrl(ytUrl)) {
+                    alert('Please enter a valid YouTube URL');
+                    return;
+                }
+
+                // Show loading, hide results
+                loadingSection.style.display = 'block';
+                resultsSection.style.display = 'none';
+                clipsContainer.innerHTML = '';
+
+                try {
+                    // Get video duration first
+                    const videoId = extractVideoId(ytUrl);
+                    const duration = await getVideoDuration(videoId);
+                    
+                    if (!duration) {
+                        throw new Error('Could not get video duration');
+                    }
+
+                    // Generate clips
+                    const clips = generateClipSegments(duration);
+                    
+                    // Process each clip
+                    for (let i = 0; i < clips.length; i++) {
+                        const clip = clips[i];
+                        const clipElement = await createClipElement(videoId, clip, i);
+                        clipsContainer.appendChild(clipElement);
+                    }
+
+                    loadingSection.style.display = 'none';
+                    resultsSection.style.display = 'block';
+                } catch (error) {
+                    console.error('Error:', error);
+                    loadingSection.style.display = 'none';
+                    alert('Error generating clips: ' + error.message);
+                }
+            });
+
+            exportBtn.addEventListener('click', async function() {
+                const videoId = extractVideoId(ytUrlInput.value.trim());
+                if (!videoId) {
+                    alert('Please generate clips first');
+                    return;
+                }
+
+                exportBtn.disabled = true;
+                exportBtn.textContent = 'Preparing download...';
+
+                try {
+                    // In a real implementation, this would call your backend
+                    // to package all clips into a ZIP file
+                    const response = await fetch('/api/export-clips', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ videoId })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Export failed');
+                    }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `yt-clips-${videoId}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                } catch (error) {
+                    console.error('Export error:', error);
+                    alert('Error exporting clips: ' + error.message);
+                } finally {
+                    exportBtn.disabled = false;
+                    exportBtn.textContent = 'Export All Clips as ZIP';
+                }
+            });
+
+            function isValidYouTubeUrl(url) {
+                const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+                return pattern.test(url);
+            }
+
+            function extractVideoId(url) {
+                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                const match = url.match(regExp);
+                return (match && match[2].length === 11) ? match[2] : null;
+            }
+
+            async function getVideoDuration(videoId) {
+                // In a real implementation, this would call your backend
+                // which would use the YouTube API to get the duration
+                try {
+                    const response = await fetch(`/api/video-duration?videoId=${videoId}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to get video duration');
+                    }
+                    const data = await response.json();
+                    return data.duration;
+                } catch (error) {
+                    console.error('Error getting duration:', error);
+                    // Fallback - return a reasonable duration if API fails
+                    return 600; // 10 minutes as fallback
+                }
+            }
+
+            function generateClipSegments(durationInSeconds) {
+                const clips = [];
+                const minClipDuration = 30;
+                const maxClipDuration = 60;
+                const totalClips = 10;
+                
+                // Ensure video is long enough
+                const minRequiredDuration = totalClips * minClipDuration;
+                if (durationInSeconds < minRequiredDuration) {
+                    throw new Error(`Video must be at least ${Math.ceil(minRequiredDuration/60)} minutes long`);
+                }
+
+                // Generate non-overlapping clips
+                let remainingDuration = durationInSeconds;
+                let startTime = 0;
+                
+                for (let i = 0; i < totalClips; i++) {
+                    // Calculate available duration for remaining clips
+                    const remainingClips = totalClips - i;
+                    const maxDurationForThisClip = Math.min(
+                        maxClipDuration,
+                        remainingDuration - (remainingClips - 1) * minClipDuration
+                    );
+                    
+                    const clipDuration = Math.floor(
+                        Math.random() * (maxDurationForThisClip - minClipDuration + 1)
+                    ) + minClipDuration;
+                    
+                    // Random start time within available window
+                    const maxStart = durationInSeconds - clipDuration - (remainingClips - 1) * minClipDuration;
+                    startTime = Math.floor(Math.random() * (maxStart - startTime + 1)) + startTime;
+                    
+                    clips.push({
+                        start: startTime,
+                        duration: clipDuration,
+                        end: startTime + clipDuration
+                    });
+                    
+                    startTime += clipDuration;
+                    remainingDuration = durationInSeconds - startTime;
+                }
+                
+                return clips;
+            }
+
+            async function createClipElement(videoId, clip, index) {
+                const clipElement = document.createElement('div');
+                clipElement.className = 'clip';
+                
+                // Create thumbnail using YouTube's thumbnail service
+                const thumbnail = document.createElement('img');
+                thumbnail.className = 'clip-thumbnail';
+                thumbnail.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                thumbnail.alt = `Clip ${index + 1}`;
+                
+                // Create clip info
+                const info = document.createElement('div');
+                info.className = 'clip-info';
+                info.textContent = `${formatTime(clip.start)}-${formatTime(clip.end)} (${clip.duration}s)`;
+                
+                // Create action buttons
+                const actions = document.createElement('div');
+                actions.className = 'clip-actions';
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'clip-btn';
+                downloadBtn.innerHTML = '⬇️';
+                downloadBtn.title = 'Download this clip';
+                downloadBtn.addEventListener('click', () => downloadClip(videoId, clip, index));
+                
+                const previewBtn = document.createElement('button');
+                previewBtn.className = 'clip-btn';
+                previewBtn.innerHTML = '▶️';
+                previewBtn.title = 'Preview this clip';
+                previewBtn.addEventListener('click', () => previewClip(videoId, clip));
+                
+                actions.appendChild(previewBtn);
+                actions.appendChild(downloadBtn);
+                
+                clipElement.appendChild(thumbnail);
+                clipElement.appendChild(info);
+                clipElement.appendChild(actions);
+                
+                return clipElement;
+            }
+
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            async function downloadClip(videoId, clip, index) {
+                try {
+                    // In a real implementation, this would call your backend
+                    // to process and return the specific clip
+                    const response = await fetch('/api/download-clip', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            videoId,
+                            start: clip.start,
+                            end: clip.end,
+                            aspectRatio: '9:16'
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Download failed');
+                    }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `clip-${index+1}-${videoId}.mp4`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                } catch (error) {
+                    console.error('Download error:', error);
+                    alert('Error downloading clip: ' + error.message);
+                }
+            }
+
+            function previewClip(videoId, clip) {
+                // Open a modal or new window with the clip playing
+                // For demo purposes, we'll just open the YouTube video at the start time
+                window.open(`https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(clip.start)}s`);
+            }
+        });
+    </script>
+</body>
+</html>
