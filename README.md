@@ -2,7 +2,6 @@
 
 A web application that generates random 30-60 second clips from YouTube videos in 9:16 aspect ratio (vertical format).
 
-![Screenshot](screenshot.png) *(Add screenshot later)*
 
 ## Features
 
